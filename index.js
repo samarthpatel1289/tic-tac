@@ -6,17 +6,14 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 const pool = new Pool({
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    port: process.env.DB_PORT,
-    ssl: {
-      rejectUnauthorized: false
-    }
+    user: 'postgres',
+    host: 'http://database-1.cppck4ypq0fe.us-east-1.rds.amazonaws.com/',
+    database: 'tic-tac',
+    password: 'root1234',
+    port: 5432,
   });
   
-const port = process.env.PORT || 8080;
+const port = 8080;
 
 app.use(express.json());
 
