@@ -6,11 +6,11 @@ const cors = require('cors');
 const app = express();
 app.use(cors());
 const pool = new Pool({
-    user: 'postgres',
-    host: 'http://database-1.cppck4ypq0fe.us-east-1.rds.amazonaws.com/',
+    user: 'sam',
+    host: 'localhost',
     database: 'tic-tac',
-    password: 'root1234',
-    port: 5432,
+    password: 'sam123',
+    port: 5433,
   });
   
 const port = 8080;
