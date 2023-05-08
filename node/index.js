@@ -10,10 +10,10 @@ const pool = new Pool({
     host: 'localhost',
     database: 'tic-tac',
     password: 'sam123',
-    port: 5433,
+    port: 5432,
   });
   
-const port = 8080;
+const port = 3000;
 
 app.use(express.json());
 
@@ -95,6 +95,7 @@ app.post('/games/:id/moves', async (req, res) => {
       const updatedGame = gameStatusResult.rows[0];
       const movesResult = await pool.query('SELECT * FROM moves WHERE game_id = $1 ORDER BY id ASC', [id]);
       const moves = movesResult.rows;
+
       const board = [];
       for (let i = 0; i < 3; i++) {
         board.push(['', '', '']);
