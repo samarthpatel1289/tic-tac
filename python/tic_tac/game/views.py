@@ -9,6 +9,7 @@ from rest_framework import serializers
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+import game.utils as game_utils
 
 
 class GameSerializer(serializers.Serializer):
@@ -64,22 +65,22 @@ def get_winning_moves(board):
     winning_moves = []
     # Check rows
     for y in range(3):
-        if board[y][0] != '' and board[y][0] == board[y][1] and board[y][1] == board[y][2]:
+        if board[y][0] != '_' and board[y][0] == board[y][1] and board[y][1] == board[y][2]:
             winning_moves.append([0, y])
             winning_moves.append([1, y])
             winning_moves.append([2, y])
     # Check columns
     for x in range(3):
-        if board[0][x] != '' and board[0][x] == board[1][x] and board[1][x] == board[2][x]:
+        if board[0][x] != '_' and board[0][x] == board[1][x] and board[1][x] == board[2][x]:
             winning_moves.append([x, 0])
             winning_moves.append([x, 1])
             winning_moves.append([x, 2])
     # Check diagonals
-    if board[0][0] != '' and board[0][0] == board[1][1] and board[1][1] == board[2][2]:
+    if board[0][0] != '_' and board[0][0] == board[1][1] and board[1][1] == board[2][2]:
         winning_moves.append([0, 0])
         winning_moves.append([1, 1])
         winning_moves.append([2, 2])
-    if board[2][0] != '' and board[2][0] == board[1][1] and board[1][1] == board[0][2]:
+    if board[2][0] != '_' and board[2][0] == board[1][1] and board[1][1] == board[0][2]:
         winning_moves.append([2, 0])
         winning_moves.append([1, 1])
         winning_moves.append([0, 2])
@@ -102,7 +103,6 @@ class MakeMoveSerializer(serializers.Serializer):
 @csrf_exempt
 @api_view(['POST'])
 def make_move(request, id):
-    
     serializer = MakeMoveSerializer(data=request.data)
     if serializer.is_valid():
         player = serializer.validated_data['player']
@@ -123,10 +123,16 @@ def make_move(request, id):
         # Update game status if needed
         cursor.execute('SELECT * FROM moves WHERE game_id = %s ORDER BY created_at ASC', [id])
         moves = cursor.fetchall()
-        board = [['', '', ''] for _ in range(3)]
+        board = [['_', '_', '_'] for _ in range(3)]
         for move in moves:
             if move is not None and x is not None and y is not None:
-                board[move[4]][move[3]] = move[2]
+                board[move[3]][move[4]] = move[2]
+
+        computer_move = game_utils.findBestMove(board)
+        if computer_move != (-1, -1):
+            cursor.execute('INSERT INTO moves (game_id, player, x, y) VALUES (%s, %s, %s, %s) RETURNING *', [id, "O", computer_move[0], computer_move[1]])
+            move = cursor.fetchone()
+
 
         winning_moves = get_winning_moves(board)
         if winning_moves:
@@ -149,4 +155,5 @@ def make_move(request, id):
         },
         'game_status': updated_game[3],
         'winning_moves': winning_moves,
+        'computer_move': computer_move,
     }, status=201)
